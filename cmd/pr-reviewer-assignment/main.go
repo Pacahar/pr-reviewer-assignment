@@ -1,11 +1,13 @@
-package prreviewerassignment
+package main
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/config"
 	"github.com/pacahar/pr-reviewer-assignment/internal/constants"
+	handlers "github.com/pacahar/pr-reviewer-assignment/internal/http"
 	"github.com/pacahar/pr-reviewer-assignment/internal/storage/postgres"
 )
 
@@ -18,6 +20,22 @@ func main() {
 	if err != nil {
 		log.Error("failed to initialize storage", slog.String("error", err.Error()))
 		return
+	}
+
+	h := handlers.NewHandler(storage, log)
+
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
+
+	log.Info("server listening", slog.String("addr", srv.Addr))
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("server failed", slog.String("error", err.Error()))
 	}
 }
 

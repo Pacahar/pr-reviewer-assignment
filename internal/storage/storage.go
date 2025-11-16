@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/models"
 )
@@ -29,7 +30,7 @@ type TeamStorage interface {
 type PullRequestStorage interface {
 	CreatePullRequest(ctx context.Context, prID, prName, authorID string) error
 	GetPullRequestByID(ctx context.Context, prID string) (models.PullRequest, error)
-	SetPullRequestStatus(ctx context.Context, prID, status string) error
+	SetPullRequestStatus(ctx context.Context, prID, status string, time time.Time) error
 	AddReviewer(ctx context.Context, prID, userID string) error
 	RemoveReviewer(ctx context.Context, prID, userID string) error
 	GetReviewersByPR(ctx context.Context, prID string) ([]string, error)

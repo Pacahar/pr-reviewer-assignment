@@ -72,10 +72,11 @@ func (prs *PullRequestPostgresStorage) GetPullRequestByID(ctx context.Context, p
 	return pr, nil
 }
 
-func (prs *PullRequestPostgresStorage) SetPullRequestStatus(ctx context.Context, prID, status string) error {
+func (prs *PullRequestPostgresStorage) SetPullRequestStatus(ctx context.Context, prID, status string, now time.Time) error {
+	// prs.GetPullRequestByID(ctx, prID)
+
 	var mergedAt *time.Time
 	if status == "MERGED" {
-		now := time.Now().UTC()
 		mergedAt = &now
 	}
 

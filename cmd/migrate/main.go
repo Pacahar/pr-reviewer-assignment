@@ -1,4 +1,4 @@
-package migrate
+package main
 
 import (
 	"database/sql"
@@ -19,7 +19,7 @@ func main() {
 	}
 	defer db.Close()
 
-	data, err := os.ReadFile("./migrations/init.sql")
+	data, err := os.ReadFile("../../migrations/init.sql")
 	if err != nil {
 		panic(err)
 	}
