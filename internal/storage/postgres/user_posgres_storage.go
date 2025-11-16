@@ -3,8 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/models"
+	storageErrors "github.com/pacahar/pr-reviewer-assignment/internal/storage/errors"
 )
 
 type UserPostgresStorage struct {
@@ -33,6 +35,9 @@ func (us *UserPostgresStorage) GetUserByID(ctx context.Context, userID string) (
 	).Scan(&user.UserID, &user.Username, &user.TeamName, &user.IsActive)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.User{}, storageErrors.ErrUserNotFound
+		}
 		return models.User{}, err
 	}
 

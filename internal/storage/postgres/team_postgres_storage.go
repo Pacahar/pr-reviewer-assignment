@@ -3,8 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/models"
+	storageErrors "github.com/pacahar/pr-reviewer-assignment/internal/storage/errors"
 )
 
 type TeamPostgresStorage struct {
@@ -31,6 +33,9 @@ func (ts *TeamPostgresStorage) GetTeamByName(ctx context.Context, teamName strin
 	).Scan(&team.TeamName)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Team{}, storageErrors.ErrTeamNotFound
+		}
 		return models.Team{}, err
 	}
 

@@ -3,9 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/models"
+	storageErrors "github.com/pacahar/pr-reviewer-assignment/internal/storage/errors"
 )
 
 type PullRequestPostgresStorage struct {
@@ -44,6 +46,9 @@ func (prs *PullRequestPostgresStorage) GetPullRequestByID(ctx context.Context, p
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.PullRequest{}, storageErrors.ErrPRNotFound
+		}
 		return models.PullRequest{}, err
 	}
 
@@ -88,7 +93,7 @@ func (prs *PullRequestPostgresStorage) SetPullRequestStatus(ctx context.Context,
 
 func (prs *PullRequestPostgresStorage) AddReviewer(ctx context.Context, prID, userID string) error {
 	_, err := prs.db.ExecContext(ctx, `
-		INSERT INTO pull_request_reviewers (pull_request_id, reviewer_id)
+		INSERT INTO pr_reviewers (pull_request_id, reviewer_id)
 		VALUES ($1, $2)
 		ON CONFLICT DO NOTHING;`,
 		prID,
@@ -99,7 +104,7 @@ func (prs *PullRequestPostgresStorage) AddReviewer(ctx context.Context, prID, us
 
 func (prs *PullRequestPostgresStorage) RemoveReviewer(ctx context.Context, prID, userID string) error {
 	_, err := prs.db.ExecContext(ctx, `
-		DELETE FROM pull_request_reviewers
+		DELETE FROM pr_reviewers
 		WHERE pull_request_id = $1 AND reviewer_id = $2;`,
 		prID,
 		userID,
@@ -110,7 +115,7 @@ func (prs *PullRequestPostgresStorage) RemoveReviewer(ctx context.Context, prID,
 func (prs *PullRequestPostgresStorage) GetReviewersByPR(ctx context.Context, prID string) ([]string, error) {
 	rows, err := prs.db.QueryContext(ctx, `
 		SELECT reviewer_id
-		FROM pull_request_reviewers
+		FROM pr_reviewers
 		WHERE pull_request_id = $1;`,
 		prID,
 	)
@@ -140,7 +145,7 @@ func (prs *PullRequestPostgresStorage) GetPullRequestsByReviewer(ctx context.Con
 		       pr.author_id,
 		       pr.status
 		FROM pull_requests pr
-		JOIN pull_request_reviewers r
+		JOIN pr_reviewers r
 		    ON pr.pull_request_id = r.pull_request_id
 		WHERE r.reviewer_id = $1;`,
 		reviewerID,
