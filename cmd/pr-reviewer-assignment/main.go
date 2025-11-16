@@ -6,12 +6,19 @@ import (
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/config"
 	"github.com/pacahar/pr-reviewer-assignment/internal/constants"
+	"github.com/pacahar/pr-reviewer-assignment/internal/storage/postgres"
 )
 
 func main() {
 	config := config.MustLoad()
 
 	log := setupLogger(config.Environment)
+
+	storage, err := postgres.NewPostgresStorage(config.Database.DSN())
+	if err != nil {
+		log.Error("failed to initialize storage", slog.String("error", err.Error()))
+		return
+	}
 }
 
 func setupLogger(env string) *slog.Logger {
