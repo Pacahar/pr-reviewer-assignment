@@ -1,0 +1,23 @@
+FROM golang:1.22 AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
+COPY . .
+
+RUN go mod tidy
+RUN go build -o migrate ./cmd/migrate/main.go
+
+FROM golang:1.22
+
+WORKDIR /app
+
+COPY --from=builder /app/migrate ./migrate
+
+COPY --from=builder /app/migrations ./migrations
+
+COPY --from=builder /app/config ./config
+
+CMD ["./migrate"]

@@ -1,0 +1,22 @@
+FROM golang:1.22 AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
+COPY . .
+
+RUN go mod tidy
+RUN go build -o pr-reviewer ./cmd/pr-reviewer-assignment/main.go
+
+FROM debian:12-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/pr-reviewer /app/pr-reviewer
+COPY config /app/config
+
+EXPOSE 4000
+
+CMD ["/app/pr-reviewer"]

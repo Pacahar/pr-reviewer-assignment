@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/pacahar/pr-reviewer-assignment/internal/config"
 	"github.com/pacahar/pr-reviewer-assignment/internal/constants"
@@ -28,7 +29,7 @@ func main() {
 	h.RegisterRoutes(mux)
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + strconv.Itoa(config.HTTPServer.Port),
 		Handler: mux,
 	}
 

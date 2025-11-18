@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: prreviewer-db
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: assignment
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d assignment"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: prreviewer-migrate
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      CONFIG_PATH: /app/config/config.yaml
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml:ro
+      - ./migrations:/app/migrations:ro
+    networks:
+      - appnet
+    command: ["/app/migrate"]
+
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: prreviewer-api
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+    environment:
+      CONFIG_PATH: /app/config/config.yaml
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml:ro
+    ports:
+      - "4000:4000"
+    networks:
+      - appnet
+    restart: always
+
+networks:
+  appnet:
+
+volumes:
+  db_data:

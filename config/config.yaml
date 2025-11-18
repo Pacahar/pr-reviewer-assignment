@@ -1,10 +1,10 @@
-environment: "dev"
+environment: local
 http_server:
-  address: "127.0.0.1"
+  address: "0.0.0.0"
   port: 4000
 database:
-  host: "127.0.0.1"
-  port: 5433
-  username: "postgres"
-  password: "password"
-  db_name: "assignment"
+  host: db
+  port: 5432
+  username: app
+  password: app
+  db_name: assignment
